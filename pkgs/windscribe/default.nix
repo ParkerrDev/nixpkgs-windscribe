@@ -316,8 +316,10 @@ stdenv.mkDerivation (finalAttrs: {
     restoreGoBinaries() {
       for bin in ${lib.escapeShellArgs goBinaries}; do
         install -Dm755 "$NIX_BUILD_TOP/go-pristine/$bin" "$out/opt/windscribe/$bin"
-        patchelf --set-interpreter "$(cat "$NIX_CC/nix-support/dynamic-linker")" \
-          "$out/opt/windscribe/$bin"
+        if readelf -l "$out/opt/windscribe/$bin" | grep -q 'INTERP'; then 
+          patchelf --set-interpreter "$(cat "$NIX_CC/nix-support/dynamic-linker")" \
+            "$out/opt/windscribe/$bin"
+        fi
       done
     }
     postFixupHooks+=(restoreGoBinaries)
